@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OpenHeart — Emotion Journal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%233b82f6' d='M12 21s-6.7-4.2-9.4-7C.4 11.7.7 8.2 3.1 6.6 5.1 5.2 7.9 5.7 9.4 7.4L12 10l2.6-2.6c1.5-1.7 4.3-2.2 6.3-.8 2.4 1.6 2.7 5.1.5 7.4-2.7 2.8-9.4 7-9.4 7z'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Dismissible disclaimer banner -->
+  
+
+  <!-- Nav -->
+<nav class="topnav" role="navigation" aria-label="Primary">
+  <a class="brand" href="#/">
+    <span class="brand-icon" aria-hidden="true">❤</span>
+    <span class="brand-text">OpenHeart</span>
+  </a>
+  <div class="nav-spacer"></div>
+  <div class="pill-rail">
+    <span id="blob" class="blob-underline"></span>
+    <a class="nav-link tab-pill" href="#/journal">Journal</a>
+    <a class="nav-link tab-pill" href="#/vent">Vent</a>
+    <a class="nav-link tab-pill" href="#/analytics">Analytics</a>
+    <a class="nav-link" href="#/credits">Credits</a>
+  </div>
+</nav>
+<div id="disclaimer" class="disclaimer-banner hidden" data-key="oh_disclaimer_v1" role="region" aria-label="Disclaimer">
+  <span>OpenHeart is for personal reflection only and not a medical device.</span>
+
+</div>
+
+
+  <!-- App -->
+  <main id="app">
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <h1>OpenHeart</h1>
+        <p class="tagline">A simple, private place to note your feelings and see gentle insights.</p>
+        
+      </div>
+    </section>
+
+    <section id="view-journal" class="view">
+      <h2>Emotion tracker</h2>
+      <div id="entry-form"></div>
+      <h2>Entries</h2>
+      <div id="entry-list"></div>
+    </section>
+    <section id="view-vent" class="view">
+  <h2>Vent</h2>
+  <div id="vent-form"></div>   <!-- this must exist -->
+  <h2>Vent Log</h2>
+  <div id="vent-list"></div>
+</section>
+
+       <section id="view-analytics" class="view">
+      <!-- Single analytics container only. Removed the duplicate section that existed before. -->
+      <div id="analytics"></div>
+    </section>
+     <section id="view-credits" class="view">
+    <div class="container">
+      <div class="card" style="max-width:800px;margin:32px auto">
+        <h2>Credits</h2>
+        <p>Made with 💖 by Group 18 — CEDT CU (final project for 2110222 sem1/2025)</p>
+        <ul>
+          <li>Frontend:   [ { "student_id": "6833168221", "name": "Piyawat Jaikla" },  { "student_id": "6833067521", "name": "Natapat Lapteerawut" } ]</li>
+          <li>Backend: [ {"student_id": "6833070321", "name": "Napatr Boonyarangkul" }, { "student_id": "6833066921", "name": "Nathaphong Wongwiangchan" } ]</li>
+          <li>AI Deployment: { "student_id": "6833123021", "name": "Thiraphat Pholboon" }</li>
+          <li>EC2 Integration: { "student_id": "6733107921", "name": "Tawin Jiramahapokee" } </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+  </main>
+
+
+  <script type="module" src="./app.js"></script>
+  <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true" focusable="false">
+  <filter id="goo">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+    <feColorMatrix in="blur" mode="matrix"
+      values="1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 20 -10" result="goo" />
+    <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+  </filter>
+</svg>
+<script>
+  // hard-remove any AI banners, now and in the future mutations
+  document.addEventListener('DOMContentLoaded', () => {
+    const killAI = () => {
+      // remove by common selectors
+      document.querySelectorAll('.ai-banner,.ai-unavailable,.ai-warning,[data-ai-banner],[data-ai-unavailable],#aiWarning')
+        .forEach(n => n.remove());
+      // remove anything whose text literally says "AI unavailable" etc.
+      const rx = /(ai\s*unavailable|llm\s*error|classifier\s*down|gemini|openai)/i;
+      document.querySelectorAll('body *').forEach(n => {
+        if (n.childElementCount === 0 && rx.test(n.textContent || '')) {
+          (n.closest('[class], [id]') || n).remove();
+        }
+      });
+    };
+    killAI();
+    new MutationObserver(killAI).observe(document.body, { childList: true, subtree: true });
+
+    // slider fix: make sure it receives input even under overlays
+    const hookSlider = () => {
+      const s = document.getElementById('daySlider'); // use your slider's id
+      if (!s) return;
+      s.style.pointerEvents = 'auto';
+      s.style.position = 'relative';
+      s.style.zIndex = '100000';
+
+      // stop parent overlays from stealing events
+      ['pointerdown','mousedown','touchstart','click','wheel'].forEach(ev => {
+        s.addEventListener(ev, e => e.stopPropagation(), true);
+      });
+
+      // if your calendar needs re-render on move
+      s.addEventListener('input', e => {
+        const i = (e.target.value|0);
+        // call your calendar update if present
+        if (window.renderDay) window.renderDay(i);
+      });
+    };
+
+    hookSlider();
+    // re-hook if the UI rerenders
+    new MutationObserver(hookSlider).observe(document.body, { childList: true, subtree: true });
+  });
+</script>
+
+</body>
+</html>
